@@ -41,7 +41,7 @@ public class ServerController {
         return ResponseEntity.ok(
                 Response.builder()
                         .timeStamp(now())
-                        .data(of("servers", server))
+                        .data(of("server", server))
                         .message(server.getStatus() == SERVER_UP ? "Ping success" : "Ping failed")
                         .status(OK)
                         .statusCode(OK.value())
@@ -55,7 +55,7 @@ public class ServerController {
         return ResponseEntity.ok(
                 Response.builder()
                         .timeStamp(now())
-                        .data(of("servers", serverService.create(server)))
+                        .data(of("server", serverService.create(server)))
                         .message("Server created")
                         .status(CREATED)
                         .statusCode(CREATED.value())
@@ -68,8 +68,21 @@ public class ServerController {
         return ResponseEntity.ok(
                 Response.builder()
                         .timeStamp(now())
-                        .data(of("servers", serverService.getServer(id)))
+                        .data(of("server", serverService.getServer(id)))
                         .message("Server retrieved")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build()
+        );
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Response> deleteServer(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(
+                Response.builder()
+                        .timeStamp(now())
+                        .data(of("deleted", serverService.deleteServer(id)))
+                        .message("Server deleted")
                         .status(OK)
                         .statusCode(OK.value())
                         .build()
