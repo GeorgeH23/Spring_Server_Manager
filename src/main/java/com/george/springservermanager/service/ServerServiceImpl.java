@@ -1,6 +1,9 @@
 package com.george.springservermanager.service;
 
 import com.george.springservermanager.domain.Server;
+import com.george.springservermanager.mapper.ServerMapper;
+import com.george.springservermanager.model.ServerDTO;
+import com.george.springservermanager.model.ServerListDTO;
 import com.george.springservermanager.repository.ServerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,8 +13,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.Collection;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import static com.george.springservermanager.enumeration.Status.SERVER_DOWN;
 import static com.george.springservermanager.enumeration.Status.SERVER_UP;
@@ -25,40 +29,51 @@ import static org.springframework.data.domain.PageRequest.*;
 public class ServerServiceImpl implements ServerService {
 
     private final ServerRepository serverRepository;
+    private final ServerMapper serverMapper;
+    private final Random random;
 
     @Override
-    public Server create(Server server) {
-        log.info("Saving new server: {}", server.getName());
-        server.setImageUrl(setServerImageUrl());
-        return serverRepository.save(server);
+    public ServerDTO create(ServerDTO serverDTO) {
+        log.info("Saving new server: {}", serverDTO.getName());
+        serverDTO.setImageUrl(setServerImageUrl());
+        return saveAndReturnDTO(serverMapper.serverDTOToServer(serverDTO));
     }
 
     @Override
-    public Server pingServer(String ipAddress) throws IOException {
+    public ServerDTO pingServer(String ipAddress) throws IOException {
         log.info("Pinging server IP: {}", ipAddress);
-        Server server = serverRepository.findByIpAddress(ipAddress);
+        ServerDTO serverDTO = serverRepository.findByIpAddress(ipAddress)
+                                .map(serverMapper::serverToServerDTO)
+                                .orElseThrow(() -> new RuntimeException("Server was not found."));
         InetAddress address = InetAddress.getByName(ipAddress);
-        server.setStatus(address.isReachable(10000) ? SERVER_UP : SERVER_DOWN);
-        serverRepository.save(server);
-        return server;
+        serverDTO.setStatus(address.isReachable(10000) ? SERVER_UP : SERVER_DOWN);
+        serverRepository.save(serverMapper.serverDTOToServer(serverDTO));
+        return serverDTO;
     }
 
     @Override
-    public Collection<Server> serverList(int limit) {
+    public ServerListDTO serverList(int limit) {
         log.info("Fetching all servers...");
-        return serverRepository.findAll(of(0, limit)).toList();
+        List<ServerDTO> serverDTOS = serverRepository
+                .findAll(of(0, limit))
+                .stream()
+                .map(serverMapper::serverToServerDTO)
+                .collect(Collectors.toList());
+        return new ServerListDTO(serverDTOS);
     }
 
     @Override
-    public Server getServer(Long id) {
+    public ServerDTO getServer(Long id) {
         log.info("Fetching server by id: {}", id);
-        return serverRepository.findById(id).stream().findFirst().get();
+        return serverRepository.findById(id)
+                .map(serverMapper::serverToServerDTO)
+                .orElseThrow(() -> new RuntimeException("Server was not found."));
     }
 
     @Override
-    public Server updateServer(Server server) {
-        log.info("Updating server: {}", server.getName());
-        return serverRepository.save(server);
+    public ServerDTO updateServer(ServerDTO serverDTO) {
+        log.info("Updating server: {}", serverDTO.getName());
+        return saveAndReturnDTO(serverMapper.serverDTOToServer(serverDTO));
     }
 
     @Override
@@ -72,6 +87,12 @@ public class ServerServiceImpl implements ServerService {
         String[] imageNames = {"server1.png", "server2.png", "server3.png", "server4.png"};
         return ServletUriComponentsBuilder
                 .fromCurrentContextPath()
-                .path("/server/image/" + imageNames[new Random().nextInt(4)]).toUriString();
+                .path("/server/image/" + imageNames[random.nextInt(4)]).toUriString();
+    }
+
+    private ServerDTO saveAndReturnDTO(Server server) {
+        Server savedServer = serverRepository.save(server);
+
+        return serverMapper.serverToServerDTO(savedServer);
     }
 }

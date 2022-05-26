@@ -3,7 +3,9 @@ package com.george.springservermanager.repository;
 import com.george.springservermanager.domain.Server;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface ServerRepository extends JpaRepository<Server, Long> {
 
-    Server findByIpAddress(String ipAddress);
+    Optional<Server> findByIpAddress(String ipAddress);
 }

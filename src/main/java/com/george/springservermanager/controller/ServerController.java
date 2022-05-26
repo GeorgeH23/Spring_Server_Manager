@@ -2,6 +2,7 @@ package com.george.springservermanager.controller;
 
 import com.george.springservermanager.domain.Response;
 import com.george.springservermanager.domain.Server;
+import com.george.springservermanager.model.ServerDTO;
 import com.george.springservermanager.service.ServerServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -25,6 +25,7 @@ import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 public class ServerController {
 
     private final ServerServiceImpl serverService;
+    private static final String SERVER = "server";
 
     @GetMapping("/list")
     public ResponseEntity<Response> getServers() {
@@ -41,12 +42,12 @@ public class ServerController {
 
     @GetMapping("/ping/{ipAddress}")
     public ResponseEntity<Response> pingServer(@PathVariable("ipAddress") String ipAddress) throws IOException {
-        Server server = serverService.pingServer(ipAddress);
+        ServerDTO serverDTO = serverService.pingServer(ipAddress);
         return ResponseEntity.ok(
                 Response.builder()
                         .timeStamp(now())
-                        .data(of("server", server))
-                        .message(server.getStatus() == SERVER_UP ? "Ping success" : "Ping failed")
+                        .data(of(SERVER, serverDTO))
+                        .message(serverDTO.getStatus() == SERVER_UP ? "Ping success" : "Ping failed")
                         .status(OK)
                         .statusCode(OK.value())
                         .build()
@@ -54,12 +55,12 @@ public class ServerController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<Response> saveServer(@RequestBody @Valid Server server) {
+    public ResponseEntity<Response> saveServer(@RequestBody @Valid ServerDTO serverDto) {
 
         return ResponseEntity.ok(
                 Response.builder()
                         .timeStamp(now())
-                        .data(of("server", serverService.create(server)))
+                        .data(of(SERVER, serverService.create(serverDto)))
                         .message("Server created")
                         .status(CREATED)
                         .statusCode(CREATED.value())
@@ -72,7 +73,7 @@ public class ServerController {
         return ResponseEntity.ok(
                 Response.builder()
                         .timeStamp(now())
-                        .data(of("server", serverService.getServer(id)))
+                        .data(of(SERVER, serverService.getServer(id)))
                         .message("Server retrieved")
                         .status(OK)
                         .statusCode(OK.value())
