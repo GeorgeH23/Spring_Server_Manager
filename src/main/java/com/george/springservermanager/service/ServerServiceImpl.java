@@ -1,6 +1,7 @@
 package com.george.springservermanager.service;
 
 import com.george.springservermanager.domain.Server;
+import com.george.springservermanager.exception.ServerNotFoundException;
 import com.george.springservermanager.mapper.ServerMapper;
 import com.george.springservermanager.model.ServerDTO;
 import com.george.springservermanager.model.ServerListDTO;
@@ -30,7 +31,7 @@ public class ServerServiceImpl implements ServerService {
 
     private final ServerRepository serverRepository;
     private final ServerMapper serverMapper;
-    private final Random random;
+    private final Random random = new Random();
 
     @Override
     public ServerDTO create(ServerDTO serverDTO) {
@@ -44,7 +45,7 @@ public class ServerServiceImpl implements ServerService {
         log.info("Pinging server IP: {}", ipAddress);
         ServerDTO serverDTO = serverRepository.findByIpAddress(ipAddress)
                                 .map(serverMapper::serverToServerDTO)
-                                .orElseThrow(() -> new RuntimeException("Server was not found."));
+                                .orElseThrow(() -> new ServerNotFoundException("Server was not found."));
         InetAddress address = InetAddress.getByName(ipAddress);
         serverDTO.setStatus(address.isReachable(10000) ? SERVER_UP : SERVER_DOWN);
         serverRepository.save(serverMapper.serverDTOToServer(serverDTO));
@@ -67,7 +68,7 @@ public class ServerServiceImpl implements ServerService {
         log.info("Fetching server by id: {}", id);
         return serverRepository.findById(id)
                 .map(serverMapper::serverToServerDTO)
-                .orElseThrow(() -> new RuntimeException("Server was not found."));
+                .orElseThrow(() -> new ServerNotFoundException("Server was not found."));
     }
 
     @Override
@@ -84,7 +85,7 @@ public class ServerServiceImpl implements ServerService {
     }
 
     private String setServerImageUrl() {
-        String[] imageNames = {"server1.png", "server2.png", "server3.png", "server4.png"};
+        String[] imageNames = {"Server1.png", "Server2.png", "Server3.png", "Server4.png"};
         return ServletUriComponentsBuilder
                 .fromCurrentContextPath()
                 .path("/server/image/" + imageNames[random.nextInt(4)]).toUriString();

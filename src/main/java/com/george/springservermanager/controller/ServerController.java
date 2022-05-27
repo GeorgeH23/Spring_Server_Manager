@@ -1,7 +1,6 @@
 package com.george.springservermanager.controller;
 
 import com.george.springservermanager.domain.Response;
-import com.george.springservermanager.domain.Server;
 import com.george.springservermanager.model.ServerDTO;
 import com.george.springservermanager.service.ServerServiceImpl;
 import lombok.RequiredArgsConstructor;
