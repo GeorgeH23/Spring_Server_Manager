@@ -80,6 +80,19 @@ public class ServerController {
         );
     }
 
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Response> updateServer(@RequestBody ServerDTO serverDto) {
+        return ResponseEntity.ok(
+                Response.builder()
+                        .timeStamp(now())
+                        .data(of(SERVER, serverService.updateServer(serverDto)))
+                        .message("Server updated")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build()
+        );
+    }
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Boolean> deleteServer(@PathVariable("id") Long id) {
         Boolean successful = serverService.deleteServer(id);
