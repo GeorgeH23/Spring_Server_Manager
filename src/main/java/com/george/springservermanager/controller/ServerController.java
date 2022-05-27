@@ -80,6 +80,12 @@ public class ServerController {
         );
     }
 
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Boolean> deleteServer(@PathVariable("id") Long id) {
+        Boolean successful = serverService.deleteServer(id);
+        return new ResponseEntity<>(successful, OK);
+    }
+
     @GetMapping(path = "/image/{fileName}", produces = IMAGE_PNG_VALUE)
     public byte[] getServerImage(@PathVariable("fileName") String fileName) throws IOException {
         return Files.readAllBytes(Paths.get("src/main/resources/static/images/" + fileName));
