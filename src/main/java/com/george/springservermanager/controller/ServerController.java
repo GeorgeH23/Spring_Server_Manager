@@ -94,9 +94,16 @@ public class ServerController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Boolean> deleteServer(@PathVariable("id") Long id) {
-        Boolean successful = serverService.deleteServer(id);
-        return new ResponseEntity<>(successful, OK);
+    public ResponseEntity<Response> deleteServer(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(
+                Response.builder()
+                        .timeStamp(now())
+                        .data(of("deleted", serverService.deleteServer(id)))
+                        .message("Server deleted")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build()
+        );
     }
 
     @GetMapping(path = "/image/{fileName}", produces = IMAGE_PNG_VALUE)
